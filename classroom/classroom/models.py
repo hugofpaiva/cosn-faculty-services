@@ -6,6 +6,7 @@ from django.core.validators import MinValueValidator
 class Classroom(models.Model):
     name = models.CharField(max_length=30)
     is_available = models.BooleanField(default=True)
+    faculty_id = models.PositiveBigIntegerField()
     seats = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
 

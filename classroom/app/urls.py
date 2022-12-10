@@ -15,9 +15,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from classroom import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    path('clasroom/<int:pk>/', views.ClassroomUpdateView.as_view()),
+
+    path('schedule/book', views.ScheduleCreateView.as_view()),
 
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
