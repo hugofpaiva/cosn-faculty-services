@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from drf_spectacular.utils import extend_schema, OpenApiExample
 from rest_framework import generics, mixins, status
 from django.http import Http404
 from rest_framework.response import Response
@@ -6,7 +7,7 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from faculty.models import Faculty, Article
-from faculty.serializers import FacultySerializer, ArticleSerializer
+from faculty.serializers import FacultySerializer, ArticleSerializer, ErrorSerializer
 
 
 # Create your views here.
@@ -28,6 +29,31 @@ class FacultyDetailsView(generics.GenericAPIView, mixins.DestroyModelMixin,
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
 
+    @extend_schema(
+        request=None,
+        examples=[OpenApiExample(
+            name="Archived Successfully",
+            description="Archived with success",
+            status_codes=[204],
+        ), OpenApiExample(
+            name="Not Found",
+            status_codes=[404],
+            description="Faculty not found",
+            value=
+            {'details': 'Not found'},
+
+        ),
+            OpenApiExample(
+                name="Already archived",
+                status_codes=[400],
+                description="Faculty already archived",
+                value=
+                {'details': 'Faculty already archived.'},
+
+            )
+        ],
+        responses={204: None,
+                   404: ErrorSerializer, 400: ErrorSerializer})
     def delete(self, request, *args, **kwargs):
         try:
             faculty = Faculty.objects.get(pk=kwargs['pk'])

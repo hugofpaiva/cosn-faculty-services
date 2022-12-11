@@ -1,6 +1,6 @@
 from django.http import Http404
-from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiExample
-from rest_framework import generics, mixins, status, serializers
+from drf_spectacular.utils import extend_schema, OpenApiExample
+from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime
@@ -148,7 +148,7 @@ class TuitionFeePayView(APIView):
             OpenApiExample(
                 name="Already Paid",
                 status_codes=[400],
-                description="Paid already paid",
+                description="TuitionFee already paid",
                 value=
                 {'details': 'TuitionFee already paid.'},
 

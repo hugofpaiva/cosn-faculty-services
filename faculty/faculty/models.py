@@ -11,7 +11,7 @@ class Location(models.Model):
         validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)],
     )
     country = CountryField()
-    name = models.CharField(max_length=250)
+    address = models.CharField(max_length=250)
 
 
 class Faculty(models.Model):

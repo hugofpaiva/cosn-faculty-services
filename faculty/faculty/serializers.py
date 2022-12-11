@@ -29,3 +29,6 @@ class ArticleSerializer(serializers.ModelSerializer):
         model = Article
         fields = '__all__'
         read_only = ['id', 'created_at']
+
+class ErrorSerializer(serializers.Serializer):
+    details = serializers.CharField()
