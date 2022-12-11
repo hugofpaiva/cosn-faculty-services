@@ -15,7 +15,7 @@ class TuitionFeeListView(generics.GenericAPIView,
     serializer_class = TuitionFeeSerializer
 
     def get(self, request, *args, **kwargs):
-        if not request.query_params.get('student_id'):
+        if not request.query_params.get('student_id', None):
             return Response({
                 'status': '400',
                 'message': 'A student_id is needed to filter the TuitionFees',
