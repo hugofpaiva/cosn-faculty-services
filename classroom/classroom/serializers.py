@@ -6,7 +6,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
         fields = '__all__'
-        read_only = ['id']
+        read_only = ['id', 'classroom']
 
 
 class ClassroomWithScheduleSerializer(serializers.ModelSerializer):
@@ -23,3 +23,7 @@ class ClassroomWithoutScheduleSerializer(serializers.ModelSerializer):
         model = Classroom
         exclude = ['faculty_id']
         read_only = ['id', 'name', 'seats']
+
+
+class ErrorSerializer(serializers.Serializer):
+    details = serializers.CharField()
