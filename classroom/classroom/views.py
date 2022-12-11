@@ -1,4 +1,4 @@
-from drf_spectacular.utils import OpenApiExample, extend_schema
+from drf_spectacular.utils import OpenApiExample, extend_schema, OpenApiParameter
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 
@@ -18,6 +18,11 @@ class ClassroomListView(generics.GenericAPIView,
         'schedules__end': ['lte']
     }
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="faculty_id", required=True, type=int),
+        ],
+    )
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('faculty_id', None):
             return Response({
@@ -210,7 +215,6 @@ class ClassroomScheduleListView(generics.GenericAPIView,
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('schedules__course_edition_id', None):
             return Response({
-                'status': '400',
-                'message': 'A course_edition_id is needed to filter the Schedules',
+                'details': 'A course_edition_id is needed to filter the Schedules',
             }, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request, *args, **kwargs)

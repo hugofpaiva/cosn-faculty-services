@@ -1,5 +1,5 @@
 from django.http import Http404
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +20,11 @@ class TuitionFeeListView(generics.GenericAPIView,
         'is_paid': ['exact']
     }
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="student_id", required=True, type=int),
+        ],
+    )
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('student_id', None):
             return Response({

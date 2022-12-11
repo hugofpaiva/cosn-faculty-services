@@ -77,6 +77,7 @@ class FacultyCreateView(generics.GenericAPIView,
     serializer_class = FacultySerializer
 
     def post(self, request, *args, **kwargs):
+        #TODO send to message broker
         return self.create(request, *args, **kwargs)
 
 
