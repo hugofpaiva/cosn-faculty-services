@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework import generics, mixins, status
 from django.http import Http404
 from rest_framework.response import Response
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from faculty.models import Faculty, Article
 from faculty.serializers import FacultySerializer, ArticleSerializer
@@ -57,6 +59,12 @@ class ArticleListView(generics.GenericAPIView,
                       mixins.ListModelMixin):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
+    filterset_fields = {
+        'faculty': ['exact'],
+        'created_at': ['gte', 'lte'],
+    }
+    search_fields = ['author', 'title']
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)

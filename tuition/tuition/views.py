@@ -13,6 +13,11 @@ class TuitionFeeListView(generics.GenericAPIView,
                          mixins.ListModelMixin):
     queryset = TuitionFee.objects.all()
     serializer_class = TuitionFeeSerializer
+    filterset_fields = {
+        'student_id': ['exact'],
+        'degree_id': ['exact'],
+        'is_paid': ['exact']
+    }
 
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('student_id', None):
@@ -69,7 +74,7 @@ class TuitionFeePayView(APIView):
             tuition_fee.is_paid = True
             tuition_fee.save()
             tuition_fee_serializer = TuitionFeeSerializer(tuition_fee)
-            return Response(tuition_fee_serializer.data,status=status.HTTP_200_OK)
+            return Response(tuition_fee_serializer.data, status=status.HTTP_200_OK)
 
         except TuitionFee.DoesNotExist:
             raise Http404
