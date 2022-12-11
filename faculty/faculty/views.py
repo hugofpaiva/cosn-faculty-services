@@ -34,8 +34,7 @@ class FacultyDetailsView(generics.GenericAPIView, mixins.DestroyModelMixin,
 
             if not faculty.is_active:
                 return Response({
-                    'status': '400',
-                    'message': 'Faculty already archived.',
+                    'details': 'Faculty already archived.',
                 }, status=status.HTTP_400_BAD_REQUEST)
             #TODO send to message broker
             faculty.is_active = False

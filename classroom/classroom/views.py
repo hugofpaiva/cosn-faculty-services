@@ -20,8 +20,7 @@ class ClassroomListView(generics.GenericAPIView,
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('faculty_id', None):
             return Response({
-                'status': '400',
-                'message': 'A faculty_id is needed to filter the Classrooms',
+                'details': 'A faculty_id is needed to filter the Classrooms',
             }, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request, *args, **kwargs)
 
@@ -50,8 +49,7 @@ class ScheduleCreateView(generics.GenericAPIView,
         if Schedule.objects.all().filter(classroom=classroom_id, start__lt=end_datetime,
                                          end__lte=end_datetime).count() != 0:
             return Response({
-                'status': '400',
-                'message': 'Classroom is already occupied in that schedule',
+                'details': 'Classroom is already occupied in that schedule',
             }, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
