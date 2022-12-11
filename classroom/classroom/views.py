@@ -43,8 +43,7 @@ class ClassroomUpdateView(generics.GenericAPIView,
             description="Change overall availability of a classroom to not available",
             request_only=True,
             status_codes=[200],
-            value=
-            {
+            value={
                 "is_available": False,
             }
         ),
@@ -53,8 +52,7 @@ class ClassroomUpdateView(generics.GenericAPIView,
                 description="Changed overall availability of a classroom to not available",
                 response_only=True,
                 status_codes=[200],
-                value=
-                {
+                value={
                     "id": 1,
                     "name": "B250",
                     "is_available": False,
@@ -87,9 +85,12 @@ class ScheduleCreateView(generics.GenericAPIView,
             start_datetime = serializer.data.get('start')
             end_datetime = serializer.data.get('end')
 
-            # TODO help need to think
-            if Schedule.objects.all().filter(classroom=classroom, start__lt=end_datetime,
-                                            end__lte=end_datetime).count() != 0:
+            if Schedule.objects.all().filter(classroom=classroom, start__gte=start_datetime,
+                                             end__lte=start_datetime).count() != 0 or \
+                    Schedule.objects.all().filter(classroom=classroom, start__lte=start_datetime,
+                                                  end__gte=start_datetime).count() != 0 or \
+                    Schedule.objects.all().filter(classroom=classroom, start__lte=end_datetime,
+                                                  end__gte=end_datetime).count() != 0:
                 return Response({
                     'details': 'Classroom is already occupied in that schedule',
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -97,12 +98,11 @@ class ScheduleCreateView(generics.GenericAPIView,
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        
+
         except Classroom.DoesNotExist:
             return Response({
                 'details': 'Classroom not found',
             }, status=status.HTTP_404_NOT_FOUND)
-        
 
     @extend_schema(
         request=ScheduleSerializer,
@@ -112,8 +112,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 description="Create Class Schedule",
                 request_only=True,
                 status_codes=[201],
-                value=
-                {
+                value={
                     "course_edition_id": 1,
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
@@ -126,8 +125,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 description="Create Exam Schedule",
                 request_only=True,
                 status_codes=[201],
-                value=
-                {
+                value={
                     "course_edition_id": 1,
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
@@ -140,8 +138,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 description="Created Class Successfully",
                 response_only=True,
                 status_codes=[201],
-                value=
-                {
+                value={
                     "id": 1,
                     "course_edition_id": 1,
                     "start": "2022-12-11T16:02:25.301Z",
@@ -156,8 +153,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 description="Created Exam Successfully",
                 response_only=True,
                 status_codes=[201],
-                value=
-                {
+                value={
                     "id": 1,
                     "course_edition_id": 1,
                     "start": "2022-12-11T16:02:25.301Z",
@@ -172,8 +168,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[404],
                 response_only=True,
                 description="Classroom Not Found",
-                value=
-                {'details': 'Classroom not found'},
+                value={'details': 'Classroom not found'},
 
             ),
             OpenApiExample(
@@ -181,8 +176,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[400],
                 response_only=True,
                 description="Classroom is closed for maintenance",
-                value=
-                {'details': 'Classroom is closed for maintenance'},
+                value={'details': 'Classroom is closed for maintenance'},
 
             ),
             OpenApiExample(
@@ -190,8 +184,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[400],
                 response_only=True,
                 description="Classroom is already occupied in that schedule",
-                value=
-                {'details': 'Classroom is already occupied in that schedule'},
+                value={'details': 'Classroom is already occupied in that schedule'},
 
             )
         ],
