@@ -77,31 +77,32 @@ class ScheduleCreateView(generics.GenericAPIView,
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         classroom_id = request.query_params.get('pk')
-        classroom = Classroom.objects.get(pk=classroom_id)
-
-        if classroom:
+        try:
+            classroom = Classroom.objects.get(pk=classroom_id)
             if not classroom.is_available:
                 return Response({
                     'details': 'Classroom is closed for maintenance',
                 }, status=status.HTTP_400_BAD_REQUEST)
-        else:
+
+            start_datetime = serializer.data.get('start')
+            end_datetime = serializer.data.get('end')
+
+            # TODO help need to think
+            if Schedule.objects.all().filter(classroom=classroom, start__lt=end_datetime,
+                                            end__lte=end_datetime).count() != 0:
+                return Response({
+                    'details': 'Classroom is already occupied in that schedule',
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
+        except Classroom.DoesNotExist:
             return Response({
                 'details': 'Classroom not found',
             }, status=status.HTTP_404_NOT_FOUND)
-
-        start_datetime = serializer.data.get('start')
-        end_datetime = serializer.data.get('end')
-
-        # TODO help need to think
-        if Schedule.objects.all().filter(classroom=classroom, start__lt=end_datetime,
-                                         end__lte=end_datetime).count() != 0:
-            return Response({
-                'details': 'Classroom is already occupied in that schedule',
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        
 
     @extend_schema(
         request=ScheduleSerializer,
