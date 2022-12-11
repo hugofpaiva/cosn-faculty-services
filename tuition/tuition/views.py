@@ -101,13 +101,13 @@ class TuitionFeeCreateView(APIView):
 
             )
         ],
-        responses={201: TuitionFeeSerializer(),
+        responses={201: TuitionFeeSerializer,
 
                    })
     def post(self, request, format=None):
         serializer = CreateTuitionFeeSerializer(data=request.data)
         if serializer.is_valid():
-            # TODO call other service & errors examples on OpenAPI
+            #TODO call other service & errors examples on OpenAPI
             now = datetime.now()
             tuition_fees = []
 
