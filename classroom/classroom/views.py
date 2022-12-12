@@ -84,6 +84,11 @@ class ScheduleCreateView(generics.GenericAPIView,
             start_datetime = serializer.validated_data.get('start')
             end_datetime = serializer.validated_data.get('end')
 
+            if end_datetime <= start_datetime:
+                return Response({
+                    'details': 'End date must be higher than start date',
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             if Schedule.objects.all().filter(classroom=classroom, start__gte=start_datetime,
                                              end__lte=start_datetime).count() != 0 or \
                     Schedule.objects.all().filter(classroom=classroom, start__lte=start_datetime,
@@ -93,6 +98,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 return Response({
                     'details': 'Classroom is already occupied in that schedule',
                 }, status=status.HTTP_400_BAD_REQUEST)
+
             serializer.validated_data['classroom'] = classroom
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
@@ -185,6 +191,14 @@ class ScheduleCreateView(generics.GenericAPIView,
                 description="Classroom is already occupied in that schedule",
                 value={'details': 'Classroom is already occupied in that schedule'},
 
+            ),
+            OpenApiExample(
+                name="End date must be higher than start date",
+                status_codes=[400],
+                response_only=True,
+                description="End date must be higher than start date",
+                value={'details': 'End date must be higher than start date'},
+
             )
         ],
         responses={201: ScheduleSerializer,
@@ -204,6 +218,19 @@ class ClassroomScheduleListView(generics.GenericAPIView,
         'schedules__end': ['lte'],
         'schedules__type': ['exact'],
     }
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        queryset = queryset.distinct()
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @extend_schema(
         parameters=[
