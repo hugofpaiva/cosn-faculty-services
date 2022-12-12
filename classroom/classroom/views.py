@@ -74,16 +74,15 @@ class ScheduleCreateView(generics.GenericAPIView,
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        classroom_id = request.query_params.get('pk')
         try:
-            classroom = Classroom.objects.get(pk=classroom_id)
+            classroom = Classroom.objects.get(pk=kwargs['pk'])
             if not classroom.is_available:
                 return Response({
                     'details': 'Classroom is closed for maintenance',
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            start_datetime = serializer.data.get('start')
-            end_datetime = serializer.data.get('end')
+            start_datetime = serializer.validated_data.get('start')
+            end_datetime = serializer.validated_data.get('end')
 
             if Schedule.objects.all().filter(classroom=classroom, start__gte=start_datetime,
                                              end__lte=start_datetime).count() != 0 or \
@@ -94,7 +93,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 return Response({
                     'details': 'Classroom is already occupied in that schedule',
                 }, status=status.HTTP_400_BAD_REQUEST)
-
+            serializer.validated_data['classroom'] = classroom
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -206,6 +205,11 @@ class ClassroomScheduleListView(generics.GenericAPIView,
         'schedules__type': ['exact'],
     }
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="schedules__course_edition_id", required=True, type=int),
+        ],
+    )
     def get(self, request, *args, **kwargs):
         if not request.query_params.get('schedules__course_edition_id', None):
             return Response({
