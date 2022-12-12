@@ -22,10 +22,10 @@ from classroom import views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('clasroom/<int:pk>/', views.ClassroomUpdateView.as_view()),
-    path('clasroom/<int:pk>/book/', views.ScheduleCreateView.as_view()),
-    path('clasrooms/', views.ClassroomListView.as_view()),
-    path('clasrooms/schedules/', views.ClassroomScheduleListView.as_view()),
+    path('classroom/<int:pk>/', views.ClassroomUpdateView.as_view()),
+    path('classroom/<int:pk>/book/', views.ScheduleCreateView.as_view()),
+    path('classrooms/', views.ClassroomListView.as_view()),
+    path('classrooms/schedules/', views.ClassroomScheduleListView.as_view()),
 
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
