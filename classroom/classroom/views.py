@@ -1,3 +1,5 @@
+import uuid
+
 from drf_spectacular.utils import OpenApiExample, extend_schema, OpenApiParameter
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
@@ -118,7 +120,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 request_only=True,
                 status_codes=[201],
                 value={
-                    "course_edition_id": 1,
+                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "CL",
@@ -131,7 +133,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 request_only=True,
                 status_codes=[201],
                 value={
-                    "course_edition_id": 1,
+                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "EX",
@@ -145,7 +147,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[201],
                 value={
                     "id": 1,
-                    "course_edition_id": 1,
+                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "CL",
@@ -160,7 +162,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[201],
                 value={
                     "id": 1,
-                    "course_edition_id": 1,
+                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "EX",
@@ -234,7 +236,7 @@ class ClassroomScheduleListView(generics.GenericAPIView,
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="schedules__course_edition_id", required=True, type=int),
+            OpenApiParameter(name="schedules__course_edition_id", required=True, type=str),
         ],
     )
     def get(self, request, *args, **kwargs):
