@@ -1,8 +1,10 @@
 import uuid
+from datetime import datetime
 
 from drf_spectacular.utils import OpenApiExample, extend_schema, OpenApiParameter
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
+from django.db.models import Prefetch
 
 from classroom.models import Schedule, Classroom
 from classroom.serializers import ScheduleSerializer, ClassroomWithoutScheduleSerializer, \
@@ -120,7 +122,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 request_only=True,
                 status_codes=[201],
                 value={
-                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
+                    "course_edition_id": '507c7f79bcf86cd7994f6c0e',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "CL",
@@ -133,7 +135,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 request_only=True,
                 status_codes=[201],
                 value={
-                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
+                    "course_edition_id": '507c7f79bcf86cd7994f6c0e',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "EX",
@@ -147,7 +149,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[201],
                 value={
                     "id": 1,
-                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
+                    "course_edition_id": '507c7f79bcf86cd7994f6c0e',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "CL",
@@ -162,7 +164,7 @@ class ScheduleCreateView(generics.GenericAPIView,
                 status_codes=[201],
                 value={
                     "id": 1,
-                    "course_edition_id": 'c96aa98a-10b0-4871-b511-67182c8bba61',
+                    "course_edition_id": '507c7f79bcf86cd7994f6c0e',
                     "start": "2022-12-11T16:02:25.301Z",
                     "end": "2022-12-11T16:02:25.301Z",
                     "type": "EX",
@@ -212,19 +214,19 @@ class ScheduleCreateView(generics.GenericAPIView,
 
 class ClassroomScheduleListView(generics.GenericAPIView,
                                 mixins.ListModelMixin):
-    queryset = Classroom.objects.all()
+    queryset = Schedule.objects.all()
     serializer_class = ClassroomWithScheduleSerializer
     filterset_fields = {
-        'schedules__course_edition_id': ['exact'],
-        'schedules__start': ['gte'],
-        'schedules__end': ['lte'],
-        'schedules__type': ['exact'],
+        'course_edition_id': ['exact'],
+        'start': ['gte'],
+        'end': ['lte'],
+        'type': ['exact'],
     }
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
-        queryset = queryset.distinct()
+        queryset = Classroom.objects.all().prefetch_related(Prefetch('schedules', queryset=queryset))
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -236,11 +238,11 @@ class ClassroomScheduleListView(generics.GenericAPIView,
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(name="schedules__course_edition_id", required=True, type=str),
+            OpenApiParameter(name="course_edition_id", required=True, type=str),
         ],
     )
     def get(self, request, *args, **kwargs):
-        if not request.query_params.get('schedules__course_edition_id', None):
+        if not request.query_params.get('course_edition_id', None):
             return Response({
                 'details': 'A course_edition_id is needed to filter the Schedules',
             }, status=status.HTTP_400_BAD_REQUEST)

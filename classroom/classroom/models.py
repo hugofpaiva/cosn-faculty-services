@@ -15,8 +15,7 @@ class Classroom(models.Model):
 class Schedule(models.Model):
     classroom = models.ForeignKey(
         Classroom, on_delete=models.CASCADE, related_name='schedules')
-    course_edition_id = models.UUIDField(
-        default=uuid.uuid4, )
+    course_edition_id = models.CharField(max_length=24)
     start = models.DateTimeField()
     end = models.DateTimeField()
     SCHEDULE_TYPE_CHOICES = (
