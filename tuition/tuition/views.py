@@ -1,3 +1,4 @@
+from django.contrib.sites import requests
 from django.http import Http404
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import generics, mixins, status
@@ -7,6 +8,9 @@ from datetime import datetime
 
 from tuition.models import TuitionFee
 from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer
+
+USER_EMAIL = 'test@test.com'
+USER_PASSWORD = 'test_pw'
 
 
 # Create your views here.
@@ -106,33 +110,52 @@ class TuitionFeeCreateView(APIView):
                         "deadline": "2022-01-11",
                         "is_paid": False}]
 
+            ),
+            OpenApiExample(
+                name="Tuition value of the degree is not available",
+                description="Tuition value of the degree is not available",
+                status_codes=[503],
+                response_only=True,
+                value={"details": "Tuition value of the degree is not available"}
             )
         ],
         responses={201: TuitionFeeSerializer,
-
+                   503: ErrorSerializer
                    })
     def post(self, request, format=None):
         serializer = CreateTuitionFeeSerializer(data=request.data)
         if serializer.is_valid():
-            # TODO call other service & errors examples on OpenAPI
-            value = 2500.00
-            now = last_day_of_month(datetime.now())
-            tuition_fees = []
-            range_limit = 1
+            response = requests.get('https://cosn-gateway.brenosalles.workers.dev/degrees/{degree_id}'.format(
+                degree_id=serializer.validated_data.get('degree_id')))
 
-            if serializer.validated_data.get('payment_type') == "MONTHLY":
-                range_limit = 10
+            if response and response.status_code == 200:
+                data = response.json()
+                if 'tuition' in data:
+                    try:
+                        value = float(data['tuition'])
+                        now = last_day_of_month(datetime.now())
+                        tuition_fees = []
+                        range_limit = 1
 
-            new_value = value / range_limit
-            for i in range(10):
-                new_deadline = last_day_of_month(now.replace(month=now.month + i))
-                tuition_fees.append(TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
-                                                              student_id=serializer.validated_data.get(
-                                                                  'student_id'), amount=round(new_value, 2),
-                                                              deadline=new_deadline))
+                        if serializer.validated_data.get('payment_type') == "MONTHLY":
+                            range_limit = 10
 
-            tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
-            return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
+                        new_value = value / range_limit
+                        for i in range(10):
+                            new_deadline = last_day_of_month(now.replace(month=now.month + i))
+                            tuition_fees.append(
+                                TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
+                                                          student_id=serializer.validated_data.get(
+                                                              'student_id'), amount=round(new_value, 2),
+                                                          deadline=new_deadline))
+
+                        tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
+                        return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
+                    except ValueError:
+                        pass
+            return Response({'details': 'Tuition value of the degree is not available'},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
