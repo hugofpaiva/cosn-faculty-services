@@ -1,14 +1,17 @@
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import generics, mixins, status
-from django.http import Http404
+from django.http import Http404, FileResponse
 from rest_framework.response import Response
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from faculty.models import Faculty, Article
-from faculty.serializers import FacultySerializer, ArticleSerializer, ErrorSerializer
+from faculty.serializers import FacultySerializer, ArticleSerializer, ErrorSerializer, CertificateParametersSerializer
 from datetime import datetime
+from reportlab.pdfgen import canvas
+from rest_framework.views import APIView
 
+import io
 from confluent_kafka import Producer
 
 kafka_conf = {
@@ -159,3 +162,30 @@ class ArticleCreateView(generics.GenericAPIView, mixins.CreateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+class CertificateCreateView(APIView):
+
+    @extend_schema(request=None,
+                   parameters=[
+                    OpenApiParameter(name="student_id", required=True, type=str),
+                    OpenApiParameter(name="certificate_type", required=True, enum=CertificateParametersSerializer.CERTIFICATE_TYPES),
+                   ])
+    def get(self, request, format=None):
+        serializer = CertificateParametersSerializer(data=request.query_params)
+        if serializer.is_valid():
+
+            buffer = io.BytesIO()
+
+            pdf = canvas.Canvas(buffer)
+            
+            pdf.setTitle("Certificate")
+            pdf.drawString(200, 500, "This is an excellent certificate.")
+            pdf.drawString(200, 480, f"Student id: {request.query_params['student_id']}")
+            pdf.drawString(200, 460, f"Certificate type: {serializer.validated_data.get('certificate_type')}")
+            pdf.showPage()
+            pdf.save()
+
+            buffer.seek(0)
+            return FileResponse(buffer, as_attachment=True, filename="certificate.pdf")
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

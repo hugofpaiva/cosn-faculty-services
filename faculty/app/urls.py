@@ -30,6 +30,8 @@ urlpatterns = [
     path('article/<int:pk>/', views.ArticleDetailsView.as_view()),
     path('article/', views.ArticleCreateView.as_view()),
 
+    path('certificate/', views.CertificateCreateView.as_view()),
+
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     # Optional UI:
