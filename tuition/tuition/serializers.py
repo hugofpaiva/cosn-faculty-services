@@ -10,9 +10,13 @@ class TuitionFeeSerializer(serializers.ModelSerializer):
 
 
 class CreateTuitionFeeSerializer(serializers.Serializer):
-    degree_id = serializers.models.PositiveBigIntegerField()
+    degree_id = serializers.models.UUIDField()
     student_id = serializers.models.PositiveBigIntegerField()
     payment_type = serializers.ChoiceField(choices=['MONTHLY', 'ANNUAL'])
+
+
+class ReceiptParametersSerializer(serializers.Serializer):
+    tuition_fee_id = serializers.IntegerField()
 
 
 class ErrorSerializer(serializers.Serializer):

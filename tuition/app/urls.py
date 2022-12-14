@@ -25,7 +25,10 @@ urlpatterns = [
     path('tuition-fees/', views.TuitionFeeListView.as_view()),
     path('tuition-fee/<int:pk>/', views.TuitionFeeDetailsView.as_view()),
     path('tuition-fee/<int:pk>/pay', views.TuitionFeePayView.as_view()),
+    path('tuition-fee/<int:pk>/receipt', views.TuitionFeePayView.as_view()),
     path('tuition-fee/', views.TuitionFeeCreateView.as_view()),
+
+
 
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

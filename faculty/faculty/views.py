@@ -51,9 +51,9 @@ class FacultyListView(generics.GenericAPIView, mixins.ListModelMixin):
 
 
 class FacultyDetailsView(
-        generics.GenericAPIView,
-        mixins.DestroyModelMixin,
-        mixins.RetrieveModelMixin,
+    generics.GenericAPIView,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
 ):
     queryset = Faculty.objects.all()
     serializer_class = FacultySerializer
@@ -94,7 +94,7 @@ class FacultyDetailsView(
                 return Response({
                     'details': 'Faculty already archived.',
                 },
-                                status=status.HTTP_400_BAD_REQUEST)
+                    status=status.HTTP_400_BAD_REQUEST)
             faculty.is_active = False
             faculty.save()
 
@@ -142,9 +142,9 @@ class ArticleListView(generics.GenericAPIView, mixins.ListModelMixin):
 
 
 class ArticleDetailsView(
-        generics.GenericAPIView,
-        mixins.DestroyModelMixin,
-        mixins.RetrieveModelMixin,
+    generics.GenericAPIView,
+    mixins.DestroyModelMixin,
+    mixins.RetrieveModelMixin,
 ):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
@@ -163,24 +163,25 @@ class ArticleCreateView(generics.GenericAPIView, mixins.CreateModelMixin):
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+
 class CertificateCreateView(APIView):
 
     @extend_schema(request=None,
                    parameters=[
-                    OpenApiParameter(name="student_id", required=True, type=str),
-                    OpenApiParameter(name="certificate_type", required=True, enum=CertificateParametersSerializer.CERTIFICATE_TYPES),
+                       OpenApiParameter(name="student_id", required=True, type=int),
+                       OpenApiParameter(name="certificate_type", required=True,
+                                        enum=CertificateParametersSerializer.CERTIFICATE_TYPES),
                    ])
     def get(self, request, format=None):
         serializer = CertificateParametersSerializer(data=request.query_params)
         if serializer.is_valid():
-
             buffer = io.BytesIO()
 
             pdf = canvas.Canvas(buffer)
-            
+
             pdf.setTitle("Certificate")
             pdf.drawString(200, 500, "This is an excellent certificate.")
-            pdf.drawString(200, 480, f"Student id: {request.query_params['student_id']}")
+            pdf.drawString(200, 480, f"Student id: {serializer.validated_data.get('student_id')}")
             pdf.drawString(200, 460, f"Certificate type: {serializer.validated_data.get('certificate_type')}")
             pdf.showPage()
             pdf.save()

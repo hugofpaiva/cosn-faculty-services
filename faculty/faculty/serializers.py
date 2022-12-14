@@ -30,14 +30,16 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only = ['id', 'created_at']
 
+
 class ErrorSerializer(serializers.Serializer):
     details = serializers.CharField()
 
+
 class CertificateParametersSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField()
     CERTIFICATE_TYPES = [
         'MASTER_DEGREE_CERTIFICATE',
         'ENROLLMENT_CERTIFICATE',
         'BACHELOR_DEGREE_CERTIFICATE'
     ]
-    student_id = serializers.models.PositiveBigIntegerField()
     certificate_type = serializers.ChoiceField(choices=CERTIFICATE_TYPES)

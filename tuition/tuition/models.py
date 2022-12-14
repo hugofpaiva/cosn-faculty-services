@@ -1,10 +1,12 @@
+import uuid
+
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 
 
 # Create your models here.
 class TuitionFee(models.Model):
-    degree_id = models.PositiveBigIntegerField()
+    degree_id = models.UUIDField(default=uuid.uuid4)
     student_id = models.PositiveBigIntegerField()
     amount = models.DecimalField(
         validators=[MinValueValidator(1.0)], decimal_places=2, max_digits=5)

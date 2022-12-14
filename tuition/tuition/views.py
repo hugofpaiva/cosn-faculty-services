@@ -1,13 +1,16 @@
-from django.contrib.sites import requests
-from django.http import Http404
+import io
+import requests
+from django.http import Http404, FileResponse
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import generics, mixins, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from datetime import datetime
+from reportlab.pdfgen import canvas
 
 from tuition.models import TuitionFee
-from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer
+from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer, \
+    ReceiptParametersSerializer
 
 
 # Create your views here.
@@ -63,7 +66,7 @@ class TuitionFeeCreateView(APIView):
                 request_only=True,
                 value=
                 {
-                    "degree_id": 1,
+                    "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                     "student_id": 1,
                     "payment_type": "MONTHLY"
                 }
@@ -76,7 +79,7 @@ class TuitionFeeCreateView(APIView):
                 request_only=True,
                 value=
                 {
-                    "degree_id": 1,
+                    "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                     "student_id": 1,
                     "payment_type": "ANNUAL"
                 }
@@ -88,7 +91,7 @@ class TuitionFeeCreateView(APIView):
                 status_codes=[201],
                 response_only=True,
                 value=[{"id": 1,
-                        "degree_id": 1,
+                        "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                         "student_id": 1,
                         "amount": "250.00",
                         "deadline": "2022-01-11",
@@ -101,7 +104,7 @@ class TuitionFeeCreateView(APIView):
                 status_codes=[201],
                 response_only=True,
                 value=[{"id": 1,
-                        "degree_id": 1,
+                        "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                         "student_id": 1,
                         "amount": "2500.00",
                         "deadline": "2022-01-11",
@@ -122,36 +125,36 @@ class TuitionFeeCreateView(APIView):
     def post(self, request, format=None):
         serializer = CreateTuitionFeeSerializer(data=request.data)
         if serializer.is_valid():
-            response = requests.get('https://cosn-gateway.brenosalles.workers.dev/degrees/{degree_id}'.format(
-                degree_id=serializer.validated_data.get('degree_id')))
+            response = requests.get(
+                f"https://cosn-gateway.brenosalles.workers.dev/degrees/{serializer.validated_data.get('degree_id')}")
 
-            if response and response.status_code == 200:
-                data = response.json()
-                if 'tuition' in data:
-                    try:
-                        value = float(data['tuition'])
-                        now = last_day_of_month(datetime.now())
-                        tuition_fees = []
-                        range_limit = 1
+        if response and response.status_code == 200:
+            data = response.json()
+            if 'tuition' in data:
+                try:
+                    value = float(data['tuition'])
+                    now = last_day_of_month(datetime.now())
+                    tuition_fees = []
+                    range_limit = 1
 
-                        if serializer.validated_data.get('payment_type') == "MONTHLY":
-                            range_limit = 10
+                    if serializer.validated_data.get('payment_type') == "MONTHLY":
+                        range_limit = 10
 
-                        new_value = value / range_limit
-                        for i in range(10):
-                            new_deadline = last_day_of_month(now.replace(month=now.month + i))
-                            tuition_fees.append(
-                                TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
-                                                          student_id=serializer.validated_data.get(
-                                                              'student_id'), amount=round(new_value, 2),
-                                                          deadline=new_deadline))
+                    new_value = value / range_limit
+                    for i in range(10):
+                        new_deadline = last_day_of_month(now.replace(month=now.month + i))
+                        tuition_fees.append(
+                            TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
+                                                      student_id=serializer.validated_data.get(
+                                                          'student_id'), amount=round(new_value, 2),
+                                                      deadline=new_deadline))
 
-                        tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
-                        return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
-                    except ValueError:
-                        pass
-            return Response({'details': 'Tuition value of the degree is not available'},
-                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                    tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
+                    return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
+                except ValueError:
+                    pass
+        return Response({'details': 'Tuition value of the degree is not available'},
+                        status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -167,7 +170,7 @@ class TuitionFeePayView(APIView):
             value=
             {
                 "id": 1,
-                "degree_id": 1,
+                "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                 "student_id": 1,
                 "amount": "250.00",
                 "deadline": "2022-12-11",
@@ -209,3 +212,49 @@ class TuitionFeePayView(APIView):
 
         except TuitionFee.DoesNotExist:
             raise Http404
+
+
+class TuitionFeeReceiptCreateView(APIView):
+
+    @extend_schema(request=None,
+                   parameters=[
+                       OpenApiParameter(name="tuition_fee_id", required=True, type=int),
+                   ],
+
+                   examples=[OpenApiExample(
+                       name="TuitionFee not yet paid.",
+                       status_codes=[400],
+                       description="TuitionFee not yet paid.",
+                       value=
+                       {'details': 'TuitionFee not yet paid.'},
+
+                   )],
+                   responses={404: ErrorSerializer, 400: ErrorSerializer})
+    def get(self, request, format=None):
+        serializer = ReceiptParametersSerializer(data=request.query_params)
+        if serializer.is_valid():
+            try:
+                tuition_fee = TuitionFee.objects.all().get(pk=serializer.validated_data.get('tuition_fee_id'))
+                if not tuition_fee.is_paid:
+                    return Response({
+                        'details': 'TuitionFee not yet paid.',
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                buffer = io.BytesIO()
+
+                pdf = canvas.Canvas(buffer)
+
+                pdf.setTitle("Receipt")
+                pdf.drawString(200, 500, f"This is the excellent receipt of Tuition nº {tuition_fee.id}")
+                pdf.drawString(200, 480, f"Student id: {tuition_fee.student_id}")
+                pdf.drawString(200, 460, f"Amount: {tuition_fee.amount}")
+                pdf.drawString(200, 440, f"Deadline: {tuition_fee.deadline}")
+                pdf.showPage()
+                pdf.save()
+
+                buffer.seek(0)
+                return FileResponse(buffer, as_attachment=True, filename="certificate.pdf")
+            except TuitionFee.DoesNotExist:
+                raise Http404
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
