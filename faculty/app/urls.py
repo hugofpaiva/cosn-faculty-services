@@ -19,6 +19,9 @@ from drf_spectacular.views import SpectacularSwaggerView, SpectacularAPIView
 
 from faculty import views
 
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -29,6 +32,8 @@ urlpatterns = [
     path('articles/', views.ArticleListView.as_view()),
     path('article/<int:pk>/', views.ArticleDetailsView.as_view()),
     path('article/', views.ArticleCreateView.as_view()),
+
+    path('sentry-debug/', trigger_error),
 
     path('certificate/', views.CertificateCreateView.as_view()),
 

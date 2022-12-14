@@ -19,6 +19,11 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from tuition import views
 
+
+def trigger_error(request):
+    division_by_zero = 1 / 0
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -28,7 +33,7 @@ urlpatterns = [
     path('tuition-fee/<int:pk>/receipt', views.TuitionFeePayView.as_view()),
     path('tuition-fee/', views.TuitionFeeCreateView.as_view()),
 
-
+    path('sentry-debug/', trigger_error),
 
     # YOUR PATTERNS
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
