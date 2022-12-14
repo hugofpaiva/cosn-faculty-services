@@ -18,8 +18,7 @@ kafka_conf = {
     'bootstrap.servers': 'dynamicity2022.fe.up.pt',
     'session.timeout.ms': 6000,
 }
-TOPIC_CREATE_FACULTY = 'faculty.created'
-TOPIC_ARCHIVE_FACULTY = 'faculty.archived'
+TOPIC_FACULTY = 'faculty'
 
 kafka_producer = Producer(**kafka_conf)
 
@@ -98,8 +97,8 @@ class FacultyDetailsView(
             faculty.is_active = False
             faculty.save()
 
-            kafka_send_event(TOPIC_ARCHIVE_FACULTY,
-                             f'{faculty.pk}, "{datetime.now()}"')
+            message = "{'archived': " + str(faculty.pk) + "}"
+            kafka_send_event(TOPIC_FACULTY, message)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         except Faculty.DoesNotExist:
@@ -122,8 +121,8 @@ class FacultyCreateView(generics.GenericAPIView, mixins.CreateModelMixin):
     def post(self, request, *args, **kwargs):
         response, faculty = self.create(request, *args, **kwargs)
 
-        kafka_send_event(TOPIC_CREATE_FACULTY,
-                         f'{faculty.id}, "{datetime.now()}"')
+        message = "{'created': " + str(faculty.pk) + "}"
+        kafka_send_event(TOPIC_FACULTY, message)
         return response
 
 
