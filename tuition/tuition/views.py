@@ -9,9 +9,6 @@ from datetime import datetime
 from tuition.models import TuitionFee
 from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer
 
-USER_EMAIL = 'test@test.com'
-USER_PASSWORD = 'test_pw'
-
 
 # Create your views here.
 class TuitionFeeListView(generics.GenericAPIView,
