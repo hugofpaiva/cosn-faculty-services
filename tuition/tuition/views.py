@@ -44,6 +44,13 @@ class TuitionFeeDetailsView(generics.GenericAPIView,
         return self.retrieve(request, *args, **kwargs)
 
 
+def last_day_of_month(now):
+    # The day 28 exists in every month. 4 days later, it's always next month
+    next_month = now.replace(day=28) + datetime.timedelta(days=4)
+    # subtracting the number of the current day brings us back one month
+    return next_month - datetime.timedelta(days=next_month.day)
+
+
 class TuitionFeeCreateView(APIView):
     @extend_schema(
         request=CreateTuitionFeeSerializer,
@@ -107,17 +114,22 @@ class TuitionFeeCreateView(APIView):
     def post(self, request, format=None):
         serializer = CreateTuitionFeeSerializer(data=request.data)
         if serializer.is_valid():
-            #TODO call other service & errors examples on OpenAPI
-            now = datetime.now()
+            # TODO call other service & errors examples on OpenAPI
+            value = 2500.00
+            now = last_day_of_month(datetime.now())
             tuition_fees = []
+            range_limit = 1
 
-            tuition_fee_1 = TuitionFee.objects.create(degree_id=1, student_id=2, amount=250.00,
-                                                      deadline=now.replace(year=now + 1))
-            tuition_fees.append(tuition_fee_1)
+            if serializer.validated_data.get('payment_type') == "MONTHLY":
+                range_limit = 10
 
-            tuition_fee_2 = TuitionFee.objects.create(degree_id=1, student_id=2, amount=250.00,
-                                                      deadline=now.replace(year=now + 2))
-            tuition_fees.append(tuition_fee_2)
+            new_value = value / range_limit
+            for i in range(10):
+                new_deadline = last_day_of_month(now.replace(month=now.month + i))
+                tuition_fees.append(TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
+                                                              student_id=serializer.validated_data.get(
+                                                                  'student_id'), amount=round(new_value, 2),
+                                                              deadline=new_deadline))
 
             tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
             return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
