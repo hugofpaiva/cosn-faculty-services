@@ -137,7 +137,16 @@ class ArticleListView(generics.GenericAPIView, mixins.ListModelMixin):
     search_fields = ['author', 'title']
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="faculty", required=True, type=int),
+        ],
+    )
     def get(self, request, *args, **kwargs):
+        if not request.query_params.get('faculty', None):
+            return Response({
+                'details': 'A faculty is needed to filter the Articles',
+            }, status=status.HTTP_400_BAD_REQUEST)
         return self.list(request, *args, **kwargs)
 
 

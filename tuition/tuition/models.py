@@ -2,10 +2,11 @@ import uuid
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django_prometheus.models import ExportModelOperationsMixin
 
 
 # Create your models here.
-class TuitionFee(models.Model):
+class TuitionFee(ExportModelOperationsMixin('tuitionfee'), models.Model):
     degree_id = models.UUIDField(default=uuid.uuid4)
     student_id = models.PositiveBigIntegerField()
     amount = models.DecimalField(

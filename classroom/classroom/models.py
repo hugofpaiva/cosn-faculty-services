@@ -1,18 +1,16 @@
-import uuid
-
 from django.db import models
 from django.core.validators import MinValueValidator
-
+from django_prometheus.models import ExportModelOperationsMixin
 
 # Create your models here
-class Classroom(models.Model):
+class Classroom(ExportModelOperationsMixin('classroom'), models.Model):
     name = models.CharField(max_length=30)
     is_available = models.BooleanField(default=True)
     faculty_id = models.PositiveBigIntegerField()
     seats = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
 
-class Schedule(models.Model):
+class Schedule(ExportModelOperationsMixin('schedule'), models.Model):
     classroom = models.ForeignKey(
         Classroom, on_delete=models.CASCADE, related_name='schedules')
     course_edition_id = models.CharField(max_length=24)

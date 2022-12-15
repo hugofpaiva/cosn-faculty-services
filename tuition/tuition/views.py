@@ -129,7 +129,7 @@ class TuitionFeeCreateView(APIView):
         if serializer.is_valid():
             url = f"https://cosn-gateway.brenosalles.workers.dev/degrees/{serializer.validated_data.get('degree_id')}"
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=2.5)
             except Exception as e:
                 capture_exception(e)
 
