@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from faculty.models import Faculty, Article
 from faculty.serializers import FacultySerializer, ArticleSerializer, ErrorSerializer, CertificateParametersSerializer
-from datetime import datetime
+from sentry_sdk import capture_exception
 from reportlab.pdfgen import canvas
 from rest_framework.views import APIView
 
@@ -35,6 +35,7 @@ def kafka_send_event(topic: str, event: str):
     try:
         kafka_producer.produce(topic, event, callback=kafka_delivery_callback)
     except BufferError as e:
+        capture_exception(e)
         print(
             '%% Local producer queue is full (%d messages awaiting delivery): try again\n'
             % len(kafka_producer))
