@@ -15,7 +15,7 @@ urlpatterns = [
     path('tuition-fees/', views.TuitionFeeListView.as_view()),
     path('tuition-fee/<int:pk>/', views.TuitionFeeDetailsView.as_view()),
     path('tuition-fee/<int:pk>/pay', views.TuitionFeePayView.as_view()),
-    path('tuition-fee/<int:pk>/receipt', views.TuitionFeePayView.as_view()),
+    path('tuition-fee/<int:pk>/receipt', views.TuitionFeeReceiptCreateView.as_view()),
     path('tuition-fee/', views.TuitionFeeCreateView.as_view()),
 
     path('sentry-debug/', trigger_error),
