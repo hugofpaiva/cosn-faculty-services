@@ -15,10 +15,15 @@ import io
 from confluent_kafka import Producer
 
 kafka_conf = {
-    'bootstrap.servers': 'dynamicity2022.fe.up.pt',
+    'bootstrap.servers': 'glider.srvs.cloudkafka.com:9094',
     'session.timeout.ms': 6000,
+    'default.topic.config': {'auto.offset.reset': 'smallest'},
+    'security.protocol': 'SASL_SSL',
+    'sasl.mechanisms': 'SCRAM-SHA-256',
+    'sasl.username': 'jnwxhpxx',
+    'sasl.password': 'u4RvB3QEra78w-afN7GQmaHZw_wcxg6a'
 }
-TOPIC_FACULTY = 'faculty'
+TOPIC_FACULTY = 'jnwxhpxx-faculty'
 
 kafka_producer = Producer(**kafka_conf)
 
