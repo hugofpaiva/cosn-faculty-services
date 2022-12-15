@@ -1,3 +1,5 @@
+import uuid
+
 from tuition.models import TuitionFee
 from rest_framework import serializers
 
@@ -10,8 +12,8 @@ class TuitionFeeSerializer(serializers.ModelSerializer):
 
 
 class CreateTuitionFeeSerializer(serializers.Serializer):
-    degree_id = serializers.models.UUIDField()
-    student_id = serializers.models.PositiveBigIntegerField()
+    degree_id = serializers.UUIDField(default=uuid.uuid4)
+    student_id = serializers.IntegerField()
     payment_type = serializers.ChoiceField(choices=['MONTHLY', 'ANNUAL'])
 
 
