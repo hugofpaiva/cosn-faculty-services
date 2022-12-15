@@ -41,6 +41,14 @@ test: ## Run tests
 run: ## Run the Django server
 	$(PYTHON) manage.py runserver
 
+.PHONY: collectstatic
+collectstatic: ## Collect Static Files
+	$(PYTHON) manage.py collectstatic --noinput
+
+.PHONY: runserver
+runserver: ## Run the Django Prod server
+	gunicorn app.wsgi -b 0.0.0.0:8000
+
 .PHONY: prod
 prod: ## Start all services containers
 	docker-compose build

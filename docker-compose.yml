@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+  db_classroom:
+    image: postgres:15.1
+    volumes:
+      - db_classroom_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=classroom
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    networks:
+      - classroom_network
+
+  db_faculty:
+    image: postgres:15.1
+    volumes:
+      - db_faculty_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=faculty
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    networks:
+      - faculty_network
+
+  db_tuition:
+    image: postgres:15.1
+    volumes:
+      - db_tuition_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=tuition
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    networks:
+      - tuition_network
+
+  django_classroom:
+    build:
+      context: classroom
+      dockerfile: ../Dockerfile
+    command: >
+      bash -c "wait-for-it -t 30 db_classroom:5432 &&
+               python3 manage.py makemigrations &&
+               python3 manage.py migrate &&
+               make runserver"
+    volumes:
+      - ./classroom:/code
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db_classroom
+    environment:
+      - DEVELOPMENT_MODE=False
+    networks:
+      - classroom_network
+  
+  django_faculty:
+    build:
+      context: faculty
+      dockerfile: ../Dockerfile
+    command: >
+      bash -c "wait-for-it -t 30 db_faculty:5432 &&
+               python3 manage.py makemigrations &&
+               python3 manage.py migrate &&
+               make runserver"
+    volumes:
+      - ./faculty:/code
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db_faculty
+    environment:
+      - DEVELOPMENT_MODE=False
+    networks:
+      - faculty_network
+
+
+  django_tuition:
+    build:
+      context: tuition
+      dockerfile: ../Dockerfile
+    command: >
+      bash -c "wait-for-it -t 30 db_tuition:5432 &&
+               python3 manage.py makemigrations &&
+               python3 manage.py migrate &&
+               make runserver"
+    volumes:
+      - ./tuition:/code
+    ports:
+      - "8003:8000"
+    depends_on:
+      - db_tuition
+    environment:
+      - DEVELOPMENT_MODE=False
+    networks:
+      - tuition_network
+
+volumes:
+  db_classroom_data:
+    name: db_classroom_data
+  db_faculty_data:
+    name: db_faculty_data
+  db_tuition_data:
+    name: db_tuition_data
+
+networks:
+    classroom_network:
+        name: classroom_network
+    faculty_network:
+        name: faculty_network
+    tuition_network:
+        name: tuition_network
