@@ -12,22 +12,13 @@ from reportlab.pdfgen import canvas
 from rest_framework.views import APIView
 
 import io
-import os
 from confluent_kafka import Producer
 import json
-from app.settings import BASE_DIR
 
 kafka_conf = {
-    'bootstrap.servers': 'glider.srvs.cloudkafka.com:9094',
-    'session.timeout.ms': 6000,
-    'default.topic.config': {'auto.offset.reset': 'smallest'},
-    'security.protocol': 'SASL_SSL',
-    'sasl.mechanisms': 'SCRAM-SHA-256',
-    'sasl.username': 'jnwxhpxx',
-    'sasl.password': 'u4RvB3QEra78w-afN7GQmaHZw_wcxg6a',
-    'ssl.ca.location': os.path.join(BASE_DIR, 'cert.pem')
+    'bootstrap.servers': '107.23.7.83:9092',
 }
-TOPIC_FACULTY = 'jnwxhpxx-faculty'
+TOPIC_FACULTY = 'faculty'
 
 kafka_producer = Producer(**kafka_conf)
 
