@@ -12,8 +12,10 @@ from reportlab.pdfgen import canvas
 from rest_framework.views import APIView
 
 import io
+import os
 from confluent_kafka import Producer
 import json
+from app.settings import BASE_DIR
 
 kafka_conf = {
     'bootstrap.servers': 'glider.srvs.cloudkafka.com:9094',
@@ -23,7 +25,7 @@ kafka_conf = {
     'sasl.mechanisms': 'SCRAM-SHA-256',
     'sasl.username': 'jnwxhpxx',
     'sasl.password': 'u4RvB3QEra78w-afN7GQmaHZw_wcxg6a',
-    'ssl.ca.location': 'cert.pem'
+    'ssl.ca.location': os.path.join(BASE_DIR, 'cert.pem')
 }
 TOPIC_FACULTY = 'jnwxhpxx-faculty'
 
