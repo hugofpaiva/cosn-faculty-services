@@ -14,6 +14,11 @@ from tuition.models import TuitionFee
 from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer, \
     ReceiptParametersSerializer
 
+NUMBER_FAILURES = 10
+end_of_timeout = None
+failures_current_5_minutes = 0
+last_date_changed = datetime.datetime.now()
+
 
 # Create your views here.
 class TuitionFeeListView(generics.GenericAPIView,
@@ -58,6 +63,8 @@ def last_day_of_month(now):
 
 
 class TuitionFeeCreateView(APIView):
+
+
     @extend_schema(
         request=CreateTuitionFeeSerializer,
         examples=[
@@ -127,40 +134,64 @@ class TuitionFeeCreateView(APIView):
     def post(self, request, format=None):
         serializer = CreateTuitionFeeSerializer(data=request.data)
         if serializer.is_valid():
+            global end_of_timeout
+            if end_of_timeout:
+                if datetime.datetime.now() < end_of_timeout:
+                    return Response({'details': 'Tuition value of the degree is not available'},
+                                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                else:
+                    end_of_timeout = None
+
             url = f"https://cosn-gateway.brenosalles.workers.dev/degrees/{serializer.validated_data.get('degree_id')}"
+            response = None
             try:
-                response = requests.get(url, timeout=2.5)
+                response = requests.get(url, timeout=3)
+                response.raise_for_status()
             except Exception as e:
                 capture_exception(e)
 
-        if response and response.status_code == 200:
-            data = response.json()
-            if 'tuition' in data:
-                try:
-                    value = float(data['tuition'])
-                    now = last_day_of_month(datetime.datetime.now().date())
-                    tuition_fees = []
-                    range_limit = 1
+            if response and response.status_code == 200:
+                data = response.json()
+                if 'tuition' in data:
+                    try:
+                        value = float(data['tuition'])
+                        now = last_day_of_month(datetime.datetime.now().date())
+                        tuition_fees = []
+                        range_limit = 1
 
-                    if serializer.validated_data.get('payment_type') == "MONTHLY":
-                        range_limit = 10
+                        if serializer.validated_data.get('payment_type') == "MONTHLY":
+                            range_limit = 10
 
-                    new_value = value / range_limit
-                    for i in range(10):
-                        new_deadline = now + relativedelta(months=+i)
-                        new_deadline = last_day_of_month(new_deadline)
-                        tuition_fees.append(
-                            TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
-                                                      student_id=serializer.validated_data.get(
-                                                          'student_id'), amount=round(new_value, 2),
-                                                      deadline=new_deadline))
+                        new_value = value / range_limit
+                        for i in range(10):
+                            new_deadline = now + relativedelta(months=+i)
+                            new_deadline = last_day_of_month(new_deadline)
+                            tuition_fees.append(
+                                TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
+                                                          student_id=serializer.validated_data.get(
+                                                              'student_id'), amount=round(new_value, 2),
+                                                          deadline=new_deadline))
 
-                    tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
-                    return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
-                except ValueError as e:
-                    capture_exception(e)
-        return Response({'details': 'Tuition value of the degree is not available'},
-                        status=status.HTTP_503_SERVICE_UNAVAILABLE)
+                        tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
+                        return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
+                    except ValueError as e:
+                        capture_exception(e)
+            elif response and response.status_code == 404:
+                pass
+            else:
+                global last_date_changed
+                global failures_current_5_minutes
+                if (datetime.datetime.now() - last_date_changed).total_seconds() > 60 * 5:
+                    failures_current_5_minutes = 1
+                else:
+                    failures_current_5_minutes += 1
+                last_date_changed = datetime.datetime.now()
+
+                if failures_current_5_minutes > NUMBER_FAILURES:
+                    end_of_timeout = datetime.datetime.now() + datetime.timedelta(minutes=5)
+
+            return Response({'details': 'Tuition value of the degree is not available'},
+                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
