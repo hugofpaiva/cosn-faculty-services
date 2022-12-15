@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 import io
 from confluent_kafka import Producer
+import json
 
 kafka_conf = {
     'bootstrap.servers': 'glider.srvs.cloudkafka.com:9094',
@@ -21,7 +22,8 @@ kafka_conf = {
     'security.protocol': 'SASL_SSL',
     'sasl.mechanisms': 'SCRAM-SHA-256',
     'sasl.username': 'jnwxhpxx',
-    'sasl.password': 'u4RvB3QEra78w-afN7GQmaHZw_wcxg6a'
+    'sasl.password': 'u4RvB3QEra78w-afN7GQmaHZw_wcxg6a',
+    'ssl.ca.location': 'cert.pem'
 }
 TOPIC_FACULTY = 'jnwxhpxx-faculty'
 
@@ -103,7 +105,7 @@ class FacultyDetailsView(
             faculty.is_active = False
             faculty.save()
 
-            message = "{'archived': " + str(faculty.pk) + "}"
+            message = json.dumps({'archived': faculty.pk})
             kafka_send_event(TOPIC_FACULTY, message)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -127,7 +129,7 @@ class FacultyCreateView(generics.GenericAPIView, mixins.CreateModelMixin):
     def post(self, request, *args, **kwargs):
         response, faculty = self.create(request, *args, **kwargs)
 
-        message = "{'created': " + str(faculty.pk) + "}"
+        message = json.dumps({'created': faculty.pk})
         kafka_send_event(TOPIC_FACULTY, message)
         return response
 
