@@ -12,8 +12,7 @@ from reportlab.pdfgen import canvas
 import decimal
 
 from tuition.models import TuitionFee
-from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer, \
-    ReceiptParametersSerializer
+from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer
 
 NUMBER_FAILURES = 10
 end_of_timeout = None

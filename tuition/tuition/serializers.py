@@ -17,9 +17,5 @@ class CreateTuitionFeeSerializer(serializers.Serializer):
     payment_type = serializers.ChoiceField(choices=['MONTHLY', 'ANNUAL'])
 
 
-class ReceiptParametersSerializer(serializers.Serializer):
-    tuition_fee_id = serializers.IntegerField()
-
-
 class ErrorSerializer(serializers.Serializer):
     details = serializers.CharField()
