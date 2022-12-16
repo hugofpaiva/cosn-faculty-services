@@ -9,6 +9,7 @@ from dateutil.relativedelta import relativedelta
 import datetime
 from sentry_sdk import capture_exception
 from reportlab.pdfgen import canvas
+import decimal
 
 from tuition.models import TuitionFee
 from tuition.serializers import TuitionFeeSerializer, CreateTuitionFeeSerializer, ErrorSerializer, \
@@ -154,23 +155,25 @@ class TuitionFeeCreateView(APIView):
                 data = response.json()
                 if 'tuition' in data:
                     try:
-                        value = float(data['tuition'])
+                        value = decimal.Decimal(data['tuition'])
                         now = last_day_of_month(datetime.datetime.now().date())
                         tuition_fees = []
                         range_limit = 1
 
                         if serializer.validated_data.get('payment_type') == "MONTHLY":
                             range_limit = 10
-
+                        
                         new_value = value / range_limit
-                        for i in range(10):
+                        
+                        for i in range(range_limit):
                             new_deadline = now + relativedelta(months=+i)
                             new_deadline = last_day_of_month(new_deadline)
-                            tuition_fees.append(
-                                TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
+                            tuition_object = TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
                                                           student_id=serializer.validated_data.get(
-                                                              'student_id'), amount=round(new_value, 2),
-                                                          deadline=new_deadline))
+                                                              'student_id'), amount=new_value,
+                                                          deadline=new_deadline)
+                            tuition_object.save()
+                            tuition_fees.append(tuition_object)
 
                         tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
                         return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
