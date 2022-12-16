@@ -65,7 +65,6 @@ def last_day_of_month(now):
 
 class TuitionFeeCreateView(APIView):
 
-
     @extend_schema(
         request=CreateTuitionFeeSerializer,
         examples=[
@@ -74,8 +73,7 @@ class TuitionFeeCreateView(APIView):
                 description="Create Monthly TuitionFees",
                 status_codes=[201],
                 request_only=True,
-                value=
-                {
+                value={
                     "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                     "student_id": 1,
                     "payment_type": "MONTHLY"
@@ -87,8 +85,7 @@ class TuitionFeeCreateView(APIView):
                 description="Create Annual TuitionFees",
                 status_codes=[201],
                 request_only=True,
-                value=
-                {
+                value={
                     "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                     "student_id": 1,
                     "payment_type": "ANNUAL"
@@ -162,20 +159,21 @@ class TuitionFeeCreateView(APIView):
 
                         if serializer.validated_data.get('payment_type') == "MONTHLY":
                             range_limit = 10
-                        
+
                         new_value = value / range_limit
-                        
+
                         for i in range(range_limit):
                             new_deadline = now + relativedelta(months=+i)
                             new_deadline = last_day_of_month(new_deadline)
                             tuition_object = TuitionFee.objects.create(degree_id=serializer.validated_data.get('degree_id'),
-                                                          student_id=serializer.validated_data.get(
-                                                              'student_id'), amount=new_value,
-                                                          deadline=new_deadline)
+                                                                       student_id=serializer.validated_data.get(
+                                'student_id'), amount=new_value,
+                                deadline=new_deadline)
                             tuition_object.save()
                             tuition_fees.append(tuition_object)
 
-                        tuition_fee_serializer = TuitionFeeSerializer(tuition_fees, many=True)
+                        tuition_fee_serializer = TuitionFeeSerializer(
+                            tuition_fees, many=True)
                         return Response(tuition_fee_serializer.data, status=status.HTTP_201_CREATED)
                     except ValueError as e:
                         capture_exception(e)
@@ -207,8 +205,7 @@ class TuitionFeePayView(APIView):
             name="Paid Successfully",
             description="Paid with success",
             status_codes=[200],
-            value=
-            {
+            value={
                 "id": 1,
                 "degree_id": 'd34897c6-0a8c-4d21-8ec7-f1ac6a771a4f',
                 "student_id": 1,
@@ -221,18 +218,16 @@ class TuitionFeePayView(APIView):
             name="Not Found",
             status_codes=[404],
             description="TuitionFee not found",
-            value=
-            {'details': 'Not found'},
+            value={'details': 'Not found'},
 
         ),
             OpenApiExample(
                 name="Already Paid",
                 status_codes=[400],
                 description="TuitionFee already paid",
-                value=
-                {'details': 'TuitionFee already paid.'},
+                value={'details': 'TuitionFee already paid.'},
 
-            )
+        )
         ],
         responses={200: TuitionFeeSerializer,
                    404: ErrorSerializer, 400: ErrorSerializer})
@@ -257,24 +252,18 @@ class TuitionFeePayView(APIView):
 class TuitionFeeReceiptCreateView(APIView):
 
     @extend_schema(request=None,
-                   parameters=[
-                       OpenApiParameter(name="tuition_fee_id", required=True, type=int),
-                   ],
-
                    examples=[OpenApiExample(
                        name="TuitionFee not yet paid.",
                        status_codes=[400],
                        description="TuitionFee not yet paid.",
-                       value=
-                       {'details': 'TuitionFee not yet paid.'},
+                       value={'details': 'TuitionFee not yet paid.'},
 
                    )],
                    responses={404: ErrorSerializer, 400: ErrorSerializer})
-    def get(self, request, format=None):
-        serializer = ReceiptParametersSerializer(data=request.query_params)
-        if serializer.is_valid():
+    def get(self, request, **kwargs):
             try:
-                tuition_fee = TuitionFee.objects.all().get(pk=serializer.validated_data.get('tuition_fee_id'))
+                tuition_fee = TuitionFee.objects.all().get(
+                    pk=kwargs['pk'])
                 if not tuition_fee.is_paid:
                     return Response({
                         'details': 'TuitionFee not yet paid.',
@@ -285,8 +274,10 @@ class TuitionFeeReceiptCreateView(APIView):
                 pdf = canvas.Canvas(buffer)
 
                 pdf.setTitle("Receipt")
-                pdf.drawString(200, 500, f"This is the excellent receipt of Tuition nº {tuition_fee.id}")
-                pdf.drawString(200, 480, f"Student id: {tuition_fee.student_id}")
+                pdf.drawString(
+                    200, 500, f"This is the excellent receipt of Tuition nº {tuition_fee.id}")
+                pdf.drawString(
+                    200, 480, f"Student id: {tuition_fee.student_id}")
                 pdf.drawString(200, 460, f"Amount: {tuition_fee.amount}")
                 pdf.drawString(200, 440, f"Deadline: {tuition_fee.deadline}")
                 pdf.showPage()
@@ -296,5 +287,3 @@ class TuitionFeeReceiptCreateView(APIView):
                 return FileResponse(buffer, as_attachment=True, filename="certificate.pdf")
             except TuitionFee.DoesNotExist:
                 raise Http404
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
