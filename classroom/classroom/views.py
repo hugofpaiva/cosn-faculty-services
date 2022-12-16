@@ -23,6 +23,7 @@ class ClassroomListView(generics.GenericAPIView,
     }
 
     @extend_schema(
+        description="Retrieves all available classrooms for the given schedules and filters",
         parameters=[
             OpenApiParameter(name="faculty_id", required=True, type=int),
         ],
@@ -42,6 +43,7 @@ class ClassroomUpdateView(generics.GenericAPIView,
 
     @extend_schema(
         request=ClassroomWithoutScheduleSerializer,
+        description="Updates the status of a classroom to tell if it is in maintenance",
         examples=[OpenApiExample(
             name="Change overall availability of a classroom",
             description="Change overall availability of a classroom to not available",
@@ -237,6 +239,7 @@ class ClassroomScheduleListView(generics.GenericAPIView,
         return Response(serializer.data)
 
     @extend_schema(
+        description="Retrieves all classrooms and their schedules for a given courseEdition",
         parameters=[
             OpenApiParameter(name="course_edition_id", required=True, type=str),
         ],
