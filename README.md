@@ -1,6 +1,6 @@
 # COSN Faculty Services
   
-The main purpose of this work is the development of a microservices based educational system for a University. To achieve this, each group of Cloud Service-Oriented Computing was responsible for the implementation of a part of the system and its respective services. The part represented on this repository concerns the Faculty, Classroom and Tuition Fee service.
+The main purpose of this work is the development of a microservices based educational system for a University. To achieve this, each group of Cloud Service-Oriented Computing was responsible for the implementation of a part of the system and its respective services. The part represented in this repository concerns the Faculty, Classroom and Tuition Fee service.
 
 ## **Running**
 
