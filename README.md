@@ -14,7 +14,7 @@ To facilitate, it is being used Docker Compose to run the multiple services.
 
 In the production environment all the services are started on Docker containers. The following command will start the services containers:
 
-``docker-compose up -d`
+``docker-compose up -d``
 
 **Other useful Make commands to do inside services folders**
 
